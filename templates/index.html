@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block content %}
+<section class="toolbar">
+  <form method="get" class="inline-form">
+    <label>Ano
+      <input type="number" name="year" value="{{ summary.year }}" min="2020" max="2100">
+    </label>
+    <label>Mês
+      <select name="month">
+        {% for m in range(1, 13) %}
+          <option value="{{ m }}" {% if m == summary.month %}selected{% endif %}>{{ month_names[m] }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit">Atualizar</button>
+  </form>
+
+  <div class="actions">
+    <a class="button secondary" href="{{ url_for('seed_demo') }}">Carregar dados de teste</a>
+    <a class="button" href="{{ url_for('export_monthly', year=summary.year, month=summary.month) }}">Exportar XLSX</a>
+  </div>
+</section>
+
+<section class="grid cards">
+  <article class="card highlight">
+    <h3>Entradas Brutas</h3>
+    <strong>{{ summary.gross_revenue|currency_br }}</strong>
+  </article>
+  <article class="card">
+    <h3>Comissões</h3>
+    <strong>{{ summary.commissions_paid|currency_br }}</strong>
+  </article>
+  <article class="card">
+    <h3>Receita do Salão</h3>
+    <strong>{{ summary.salon_revenue|currency_br }}</strong>
+  </article>
+  <article class="card">
+    <h3>Saídas</h3>
+    <strong>{{ summary.total_outflows|currency_br }}</strong>
+  </article>
+  <article class="card">
+    <h3>Resultado</h3>
+    <strong class="{% if summary.result_month < 0 %}negative{% else %}positive{% endif %}">
+      {{ summary.result_month|currency_br }}
+    </strong>
+  </article>
+  <article class="card">
+    <h3>Ticket Médio</h3>
+    <strong>{{ summary.average_ticket|currency_br }}</strong>
+  </article>
+</section>
+
+<section class="grid two-col">
+  <article class="card">
+    <div class="card-header">
+      <h2>Últimos Atendimentos</h2>
+      <a href="{{ url_for('attendances') }}">Gerenciar</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Serviço</th>
+            <th>Colaborador</th>
+            <th>Valor</th>
+            <th>Salão</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in recent_attendances %}
+            <tr>
+              <td>{{ item.attendance_date.strftime("%d/%m/%Y") }}</td>
+              <td>{{ item.service.name }}</td>
+              <td>{{ item.collaborator.name }}</td>
+              <td>{{ item.amount_charged|currency_br }}</td>
+              <td>{{ item.salon_amount|currency_br }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5">Nenhum atendimento lançado ainda.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card-header">
+      <h2>Resumo rápido</h2>
+      <a href="{{ url_for('report', year=summary.year, month=summary.month) }}">Abrir fechamento</a>
+    </div>
+    <ul class="summary-list">
+      <li><span>Qtd. atendimentos</span> <strong>{{ summary.count_attendances }}</strong></li>
+      <li><span>Despesas operacionais</span> <strong>{{ summary.operational_expenses|currency_br }}</strong></li>
+      <li><span>Compras de produtos</span> <strong>{{ summary.product_costs|currency_br }}</strong></li>
+      <li><span>Período</span> <strong>{{ month_names[summary.month] }}/{{ summary.year }}</strong></li>
+    </ul>
+
+    <h3>Últimas despesas</h3>
+    <ul class="stack-list compact">
+      {% for item in recent_expenses %}
+        <li>{{ item.expense_date.strftime("%d/%m/%Y") }} — {{ item.description }} — <strong>{{ item.amount|currency_br }}</strong></li>
+      {% else %}
+        <li>Nenhuma despesa cadastrada.</li>
+      {% endfor %}
+    </ul>
+
+    <h3>Últimos produtos</h3>
+    <ul class="stack-list compact">
+      {% for item in recent_products %}
+        <li>{{ item.purchase_date.strftime("%d/%m/%Y") }} — {{ item.product_name }} — <strong>{{ item.total_cost|currency_br }}</strong></li>
+      {% else %}
+        <li>Nenhuma compra de produto cadastrada.</li>
+      {% endfor %}
+    </ul>
+  </article>
+</section>
+
+<section class="grid two-col">
+  <article class="card">
+    <div class="card-header">
+      <h2>Tendência de 6 meses</h2>
+      <span class="muted">Entradas vs resultado</span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="trendChart"></canvas>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card-header">
+      <h2>Serviços mais fortes</h2>
+      <span class="muted">Faturamento bruto</span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="serviceChart"></canvas>
+    </div>
+  </article>
+</section>
+
+<section class="grid two-col">
+  <article class="card">
+    <div class="card-header">
+      <h2>Colaboradores com mais faturamento</h2>
+      <span class="muted">Top do mês</span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="collaboratorChart"></canvas>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card-header">
+      <h2>Atalhos úteis</h2>
+      <span class="muted">A parte menos glamourosa que salva o caixa</span>
+    </div>
+    <div class="quick-links">
+      <a class="mini-link" href="{{ url_for('services') }}">Editar serviços</a>
+      <a class="mini-link" href="{{ url_for('collaborators') }}">Editar colaboradores</a>
+      <a class="mini-link" href="{{ url_for('attendances') }}">Corrigir atendimentos</a>
+      <a class="mini-link" href="{{ url_for('expenses') }}">Lançar despesas</a>
+      <a class="mini-link" href="{{ url_for('products') }}">Registrar compras</a>
+      <a class="mini-link" href="{{ url_for('import_excel') }}">Importar planilha</a>
+    </div>
+  </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const trendLabels = {{ trend_labels|tojson }};
+const trendGross = {{ trend_gross|tojson }};
+const trendResult = {{ trend_result|tojson }};
+const serviceLabels = {{ service_labels|tojson }};
+const serviceValues = {{ service_values|tojson }};
+const collaboratorLabels = {{ collaborator_labels|tojson }};
+const collaboratorValues = {{ collaborator_values|tojson }};
+
+new Chart(document.getElementById('trendChart'), {
+  type: 'line',
+  data: {
+    labels: trendLabels,
+    datasets: [
+      { label: 'Entradas', data: trendGross, tension: 0.25 },
+      { label: 'Resultado', data: trendResult, tension: 0.25 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false }
+});
+
+new Chart(document.getElementById('serviceChart'), {
+  type: 'bar',
+  data: {
+    labels: serviceLabels,
+    datasets: [{ label: 'Faturamento', data: serviceValues }]
+  },
+  options: { responsive: true, maintainAspectRatio: false }
+});
+
+new Chart(document.getElementById('collaboratorChart'), {
+  type: 'bar',
+  data: {
+    labels: collaboratorLabels,
+    datasets: [{ label: 'Faturamento', data: collaboratorValues }]
+  },
+  options: { responsive: true, maintainAspectRatio: false }
+});
+</script>
+{% endblock %}

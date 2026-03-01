@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="grid two-col">
+  <article class="card">
+    <div class="card-header">
+      <h2>{{ "Editar Colaborador" if editing_item else "Cadastrar Colaborador" }}</h2>
+      {% if editing_item %}
+        <a href="{{ url_for('collaborators') }}">Cancelar edição</a>
+      {% endif %}
+    </div>
+
+    <form method="post" class="form-grid">
+      <input type="hidden" name="item_id" value="{{ editing_item.id if editing_item else '' }}">
+      <label>Nome
+        <input type="text" name="name" value="{{ editing_item.name if editing_item else '' }}" required>
+      </label>
+      <label>Função
+        <input type="text" name="role" value="{{ editing_item.role if editing_item else '' }}" placeholder="Cabeleireira, manicure...">
+      </label>
+      <label>% comissão padrão
+        <input type="number" step="0.01" min="0" max="100" name="default_commission_pct" value="{{ editing_item.default_commission_pct if editing_item else '' }}" required>
+      </label>
+      <label>Status
+        <select name="status">
+          <option value="Ativo" {% if not editing_item or editing_item.status == "Ativo" %}selected{% endif %}>Ativo</option>
+          <option value="Inativo" {% if editing_item and editing_item.status == "Inativo" %}selected{% endif %}>Inativo</option>
+        </select>
+      </label>
+      <button type="submit">{{ "Atualizar colaborador" if editing_item else "Salvar colaborador" }}</button>
+    </form>
+  </article>
+
+  <article class="card">
+    <h2>Colaboradores cadastrados</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Função</th>
+            <th>% padrão</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+            <tr>
+              <td>{{ item.name }}</td>
+              <td>{{ item.role }}</td>
+              <td>{{ item.default_commission_pct }}%</td>
+              <td>{{ item.status }}</td>
+              <td>
+                <div class="row-actions">
+                  <a class="button small secondary" href="{{ url_for('collaborators', edit=item.id) }}">Editar</a>
+                  <form method="post" action="{{ url_for('collaborator_delete', item_id=item.id) }}" onsubmit="return confirm('Excluir este colaborador?');">
+                    <button type="submit" class="button small danger">Excluir</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5">Nenhum colaborador cadastrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+{% endblock %}

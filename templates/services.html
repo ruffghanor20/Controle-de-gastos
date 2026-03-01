@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="grid two-col">
+  <article class="card">
+    <div class="card-header">
+      <h2>{{ "Editar Serviço" if editing_item else "Cadastrar Serviço" }}</h2>
+      {% if editing_item %}
+        <a href="{{ url_for('services') }}">Cancelar edição</a>
+      {% endif %}
+    </div>
+
+    <form method="post" class="form-grid">
+      <input type="hidden" name="item_id" value="{{ editing_item.id if editing_item else '' }}">
+      <label>Nome do serviço
+        <input type="text" name="name" value="{{ editing_item.name if editing_item else '' }}" required>
+      </label>
+      <label>Categoria
+        <input type="text" name="category" value="{{ editing_item.category if editing_item else '' }}" placeholder="Cabelo, Unhas, Estética...">
+      </label>
+      <label>Preço padrão
+        <input type="number" step="0.01" min="0" name="default_price" value="{{ editing_item.default_price if editing_item else '' }}" required>
+      </label>
+      <label>% comissão
+        <input type="number" step="0.01" min="0" max="100" name="commission_pct" value="{{ editing_item.commission_pct if editing_item else '' }}" required>
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" name="active" {% if not editing_item or editing_item.active %}checked{% endif %}>
+        Serviço ativo
+      </label>
+      <button type="submit">{{ "Atualizar serviço" if editing_item else "Salvar serviço" }}</button>
+    </form>
+  </article>
+
+  <article class="card">
+    <h2>Serviços cadastrados</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Serviço</th>
+            <th>Categoria</th>
+            <th>Preço</th>
+            <th>% comissão</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+            <tr>
+              <td>{{ item.name }}</td>
+              <td>{{ item.category }}</td>
+              <td>{{ item.default_price|currency_br }}</td>
+              <td>{{ item.commission_pct }}%</td>
+              <td>{{ "Ativo" if item.active else "Inativo" }}</td>
+              <td>
+                <div class="row-actions">
+                  <a class="button small secondary" href="{{ url_for('services', edit=item.id) }}">Editar</a>
+                  <form method="post" action="{{ url_for('service_delete', item_id=item.id) }}" onsubmit="return confirm('Excluir este serviço?');">
+                    <button type="submit" class="button small danger">Excluir</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="6">Nenhum serviço cadastrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+{% endblock %}

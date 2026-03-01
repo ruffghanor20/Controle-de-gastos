@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="grid two-col">
+  <article class="card">
+    <div class="card-header">
+      <h2>{{ "Editar Despesa" if editing_item else "Registrar Despesa" }}</h2>
+      {% if editing_item %}
+        <a href="{{ url_for('expenses') }}">Cancelar edição</a>
+      {% endif %}
+    </div>
+
+    <form method="post" class="form-grid">
+      <input type="hidden" name="item_id" value="{{ editing_item.id if editing_item else '' }}">
+      <label>Data
+        <input type="date" name="expense_date" value="{{ editing_item.expense_date.isoformat() if editing_item else today.isoformat() }}" required>
+      </label>
+      <label>Categoria
+        <input type="text" name="category" value="{{ editing_item.category if editing_item else '' }}" placeholder="Aluguel, luz, marketing..." required>
+      </label>
+      <label>Descrição
+        <input type="text" name="description" value="{{ editing_item.description if editing_item else '' }}" required>
+      </label>
+      <label>Valor
+        <input type="number" step="0.01" min="0" name="amount" value="{{ editing_item.amount if editing_item else '' }}" required>
+      </label>
+      <label>Tipo
+        <select name="expense_type">
+          <option value="Variavel" {% if not editing_item or editing_item.expense_type == "Variavel" %}selected{% endif %}>Variável</option>
+          <option value="Fixa" {% if editing_item and editing_item.expense_type == "Fixa" %}selected{% endif %}>Fixa</option>
+        </select>
+      </label>
+      <label>Pago por
+        <input type="text" name="paid_by" value="{{ editing_item.paid_by if editing_item and editing_item.paid_by else '' }}" placeholder="Opcional">
+      </label>
+      <button type="submit">{{ "Atualizar despesa" if editing_item else "Salvar despesa" }}</button>
+    </form>
+  </article>
+
+  <article class="card">
+    <h2>Despesas registradas</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Categoria</th>
+            <th>Descrição</th>
+            <th>Valor</th>
+            <th>Tipo</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+            <tr>
+              <td>{{ item.expense_date.strftime("%d/%m/%Y") }}</td>
+              <td>{{ item.category }}</td>
+              <td>{{ item.description }}</td>
+              <td>{{ item.amount|currency_br }}</td>
+              <td>{{ item.expense_type }}</td>
+              <td>
+                <div class="row-actions">
+                  <a class="button small secondary" href="{{ url_for('expenses', edit=item.id) }}">Editar</a>
+                  <form method="post" action="{{ url_for('expense_delete', item_id=item.id) }}" onsubmit="return confirm('Excluir esta despesa?');">
+                    <button type="submit" class="button small danger">Excluir</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="6">Nenhuma despesa cadastrada.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="grid two-col">
+  <article class="card">
+    <h2>Importar planilha Excel</h2>
+    <p>Use a planilha modelo para trazer dados de serviços, colaboradores, atendimentos, despesas e produtos.</p>
+
+    <form method="post" enctype="multipart/form-data" class="form-grid">
+      <label>Arquivo .xlsx
+        <input type="file" name="xlsx_file" accept=".xlsx" required>
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" name="reset_data">
+        Limpar dados atuais antes de importar
+      </label>
+      <button type="submit">Importar planilha</button>
+    </form>
+  </article>
+
+  <article class="card">
+    <h2>Abas esperadas</h2>
+    <ul class="stack-list">
+      <li><code>tbServicos</code></li>
+      <li><code>tbColaboradores</code></li>
+      <li><code>tbAtendimentos</code></li>
+      <li><code>tbDespesas</code></li>
+      <li><code>tbProdutos</code></li>
+    </ul>
+    <p class="muted">Se alguma aba faltar, o sistema importa o que existir e ignora o resto. Um pragmatismo bonito.</p>
+  </article>
+</section>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="toolbar">
+  <form method="get" class="inline-form">
+    <label>Ano
+      <input type="number" name="year" value="{{ summary.year }}" min="2020" max="2100">
+    </label>
+    <label>Mês
+      <select name="month">
+        {% for m in range(1, 13) %}
+          <option value="{{ m }}" {% if m == summary.month %}selected{% endif %}>{{ month_names[m] }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit">Atualizar fechamento</button>
+  </form>
+  <a class="button" href="{{ url_for('export_monthly', year=summary.year, month=summary.month) }}">Baixar XLSX</a>
+</section>
+
+<section class="grid cards">
+  <article class="card"><h3>Entradas Brutas</h3><strong>{{ summary.gross_revenue|currency_br }}</strong></article>
+  <article class="card"><h3>Comissões Pagas</h3><strong>{{ summary.commissions_paid|currency_br }}</strong></article>
+  <article class="card"><h3>Receita Líquida</h3><strong>{{ summary.salon_revenue|currency_br }}</strong></article>
+  <article class="card"><h3>Despesas Operacionais</h3><strong>{{ summary.operational_expenses|currency_br }}</strong></article>
+  <article class="card"><h3>Produtos</h3><strong>{{ summary.product_costs|currency_br }}</strong></article>
+  <article class="card"><h3>Resultado</h3><strong class="{% if summary.result_month < 0 %}negative{% else %}positive{% endif %}">{{ summary.result_month|currency_br }}</strong></article>
+</section>
+
+<section class="grid two-col">
+  <article class="card">
+    <h2>Ranking de Serviços</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Serviço</th>
+            <th>Qtd.</th>
+            <th>Faturamento</th>
+            <th>Salão</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in summary.service_rank %}
+            <tr>
+              <td>{{ row.service_name }}</td>
+              <td>{{ row.total_attendances }}</td>
+              <td>{{ row.gross_amount|currency_br }}</td>
+              <td>{{ row.salon_amount|currency_br }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4">Sem dados no período.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="card">
+    <h2>Ranking de Colaboradores</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Colaborador</th>
+            <th>Qtd.</th>
+            <th>Faturamento</th>
+            <th>Comissões</th>
+            <th>Salão</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in summary.collaborator_rank %}
+            <tr>
+              <td>{{ row.collaborator_name }}</td>
+              <td>{{ row.total_attendances }}</td>
+              <td>{{ row.gross_amount|currency_br }}</td>
+              <td>{{ row.commission_amount|currency_br }}</td>
+              <td>{{ row.salon_amount|currency_br }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5">Sem dados no período.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+
+<section class="grid two-col">
+  <article class="card">
+    <h2>Despesas do período</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr></thead>
+        <tbody>
+          {% for item in summary.expenses %}
+            <tr>
+              <td>{{ item.expense_date.strftime("%d/%m/%Y") }}</td>
+              <td>{{ item.description }}</td>
+              <td>{{ item.category }}</td>
+              <td>{{ item.amount|currency_br }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4">Sem despesas no período.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="card">
+    <h2>Compras de produtos</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Data</th><th>Produto</th><th>Qtd.</th><th>Total</th></tr></thead>
+        <tbody>
+          {% for item in summary.products %}
+            <tr>
+              <td>{{ item.purchase_date.strftime("%d/%m/%Y") }}</td>
+              <td>{{ item.product_name }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.total_cost|currency_br }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4">Sem compras no período.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+{% endblock %}

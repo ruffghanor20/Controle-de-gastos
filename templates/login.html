@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="auth-card card">
+  <div class="auth-copy">
+    <h2>Entrar no sistema</h2>
+    <p>Use o usuário administrador padrão ou o configurado por variável de ambiente.</p>
+    <ul class="stack-list compact">
+      <li><strong>Usuário padrão:</strong> admin</li>
+      <li><strong>Senha padrão:</strong> admin123</li>
+      <li>Troque isso via <code>ADMIN_USERNAME</code> e <code>ADMIN_PASSWORD</code>.</li>
+    </ul>
+  </div>
+
+  <form method="post" class="form-grid auth-form">
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <label>Usuário
+      <input type="text" name="username" required autofocus>
+    </label>
+    <label>Senha
+      <input type="password" name="password" required>
+    </label>
+    <button type="submit">Entrar</button>
+  </form>
+</section>
+{% endblock %}

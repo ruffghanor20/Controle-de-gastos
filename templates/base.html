@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title or "Salão Financeiro V2" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  {% if current_user %}
+  <header class="topbar">
+    <div class="brand">
+      <h1>Salão Financeiro V2</h1>
+      <p>Controle real de caixa, comissão e fechamento mensal. Menos improviso, mais método.</p>
+    </div>
+    <nav class="nav">
+      <a href="{{ url_for('index') }}">Dashboard</a>
+      <a href="{{ url_for('services') }}">Serviços</a>
+      <a href="{{ url_for('collaborators') }}">Colaboradores</a>
+      <a href="{{ url_for('attendances') }}">Atendimentos</a>
+      <a href="{{ url_for('expenses') }}">Despesas</a>
+      <a href="{{ url_for('products') }}">Produtos</a>
+      <a href="{{ url_for('report') }}">Relatório</a>
+      <a href="{{ url_for('import_excel') }}">Importar Excel</a>
+    </nav>
+    <div class="user-chip">
+      <span>{{ current_user.username }}</span>
+      <a class="button ghost" href="{{ url_for('logout') }}">Sair</a>
+    </div>
+  </header>
+  {% endif %}
+
+  <main class="container {% if not current_user %}container-auth{% endif %}">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="flash-wrapper">
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
